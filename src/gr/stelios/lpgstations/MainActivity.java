@@ -10,26 +10,32 @@ import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 
 public class MainActivity extends Activity {
 
 	private ArrayList<String> pratiriaList = new ArrayList<String>(); 
-	private ArrayList<String> pratiriaListTemp = new ArrayList<String>(); 
 	private ArrayList<String> address = new ArrayList<String>(); 
 	private ArrayList<String> price = new ArrayList<String>(); 
+	private ArrayList<String> distance = new ArrayList<String>(); 
+	private ArrayList<String> sorted = new ArrayList<String>(); 
 	private PratiriaAdapter adapter;
-	private ListView list;
 	private double dlat, dlon;
-	private ArrayList<String> sortedByDistance = new ArrayList<String>(); 
+	private int sortFlag = 0;
 	
 	
 	@Override
@@ -44,18 +50,52 @@ public class MainActivity extends Activity {
 			return;
 		}
 		
-		adapter = new PratiriaAdapter(this, address, price);
-		list = (ListView) findViewById(R.id.listview_pratiria);
+		adapter = new PratiriaAdapter(this, address, price, distance);
+		ListView list = (ListView) findViewById(R.id.listview_pratiria);
 		list.setAdapter(adapter);
 		list.setPersistentDrawingCache(ViewGroup.PERSISTENT_NO_CACHE);
+
 		
 		getUserCoordinates();
-		
 		readPratiriaFromFile();
-
-		adapter.notifyDataSetChanged(); 
+		sortNearest();
 		
-		getNearest();
+		
+		list.setOnItemClickListener(new OnItemClickListener(){
+
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
+				
+				Intent intent = new Intent(MainActivity.this, MapActivity.class);
+				intent.putExtra("mylat", dlat);
+				intent.putExtra("mylon", dlon);
+				intent.putExtra("list", sorted.get(position));
+		
+				//System.out.println("LIST CLICK "+sorted.get(position));
+				
+				startActivity(intent);
+			}
+
+		});
+		
+		
+		ImageView imgFavorite = (ImageView) findViewById(R.id.img_sort);
+		imgFavorite.setOnClickListener(new View.OnClickListener() {
+		    @Override
+		    public void onClick(View v){
+		    	if ( sortFlag == 0 ){
+		    		((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+		    		sortFlag = 1;
+		    		sortCheapest();
+		    	} else{
+		    		((ImageView) v).setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
+		    		sortFlag = 0;
+		    		sortNearest();
+		    	}
+		    }
+		});
+
+
 	}
 
 	
@@ -67,16 +107,27 @@ public class MainActivity extends Activity {
 
 		    String mLine = reader.readLine();
 		    int k = 0;
-		    while (k < 672){
+		    while (k < 674){
 		       mLine = reader.readLine(); 
 		       
 		       if ( mLine.indexOf("#") != -1 ){
+		    	   
 			       float minX = 1.0f;
 			       float maxX = 5.0f;
 			       Random rand = new Random();
 			       float finalX = rand.nextFloat() * (maxX - minX) + minX;
-			       String pr = new DecimalFormat("#.##").format(finalX);
-			       pratiriaList.add(mLine+"#"+pr);
+			       
+			       String[] part = mLine.split("#");
+			       String[] ll = part[1].split(",");
+					
+			       double tlat = Double.parseDouble(ll[0]);
+			       double tlon = Double.parseDouble(ll[1]);
+					
+			       float[] results = new float[1];
+			       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
+			       int r = Math.round(results[0]);
+			       
+			       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
 		       }
 		       
 		       k++;
@@ -94,51 +145,69 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	private void getNearest(){
-		
+	private void sortNearest(){
+		sorted.clear();
 		for(int i = 0; i < pratiriaList.size(); i++){
 			String[] part = pratiriaList.get(i).split("#");
-			String[] ll = part[1].split(",");
-			
-			double tlat = Double.parseDouble(ll[0]);
-			double tlon = Double.parseDouble(ll[1]);
-			
-			float[] results = new float[1];
-	     	Location.distanceBetween(dlat, dlon, tlat, tlon, results);
-	     	
-	     	sortedByDistance.add(results[0]+"#"+part[0]+"#"+part[2]);
-	     	 
-	     	//System.out.println("DISTANCE: "+results[0]);
+			sorted.add(part[1]+"#"+part[0]+"#"+part[2]+"#"+part[3]);
 		}
-		
-		Collections.sort(sortedByDistance);
-		
+		Collections.sort(sorted, new DistanceComparator());
 		finalizeListView();
-		//System.out.println(sortedByDistance);
+	}
+	
+	
+	private void sortCheapest(){
+		sorted.clear();
+		for(int i = 0; i < pratiriaList.size(); i++){
+			String[] part = pratiriaList.get(i).split("#");
+			sorted.add(part[2]+"#"+part[0]+"#"+part[1]+"#"+part[3]);
+		}
+		Collections.sort(sorted, new PriceComparator());
+		finalizeListView();
 	}
 	
 	
 	private void finalizeListView(){
 		
-		for(int i = 0; i < 20; i++){
-			
-			String[] part = sortedByDistance.get(i).split("#");
-			
-			address.add(part[1]);
-		    price.add(part[2]+" €");
-		}
+		address.clear();
+		distance.clear();
+		price.clear();
 		
+		if ( sortFlag == 0 ){
+			for(int i = 0; i < 20; i++){
+				String[] part = sorted.get(i).split("#");
+				address.add(part[1]);
+				distance.add(part[0]+" μ.");
+				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[2]));
+			    price.add(pr+" €");
+			}
+			setTitle("LPGStations - Κοντινότερα:");
+			
+		} else{
+			for(int i = 0; i < 20; i++){
+				String[] part = sorted.get(i).split("#");
+				address.add(part[1]);
+				distance.add(part[2]+" μ.");
+				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[0]));
+			    price.add(pr+" €");
+			}
+			setTitle("LPGStations - Φθηνότερα:");
+		}
+		adapter.notifyDataSetChanged(); 
 	}
 	
 	
-	
 	private void getUserCoordinates(){
-		 GPSTracker gpsTracker = new GPSTracker(this);
+		 MyLocation gpsTracker = new MyLocation(this);
 		 if ( gpsTracker.canGetLocation() ){
 			String stringLatitude = String.valueOf(gpsTracker.latitude);
 	        String stringLongitude = String.valueOf(gpsTracker.longitude);
+	        
 	        dlat = Double.parseDouble(stringLatitude);
 	        dlon = Double.parseDouble(stringLongitude);
+	        
+	        //dlat = 40.5169088;
+	        //dlon = 21.2631571;
 	        //System.out.println(stringLatitude+" - "+stringLongitude);
 	     }
 	 }
@@ -150,8 +219,7 @@ public class MainActivity extends Activity {
 		  if ( ni == null ) {
 			  System.out.println("no network connection");
 		   return false;
-		  } else
-		   return true;
+		  } else return true;
 	}
 	
 	
