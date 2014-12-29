@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
 	private PratiriaAdapter adapter;
 	private double dlat, dlon;
 	private int sortFlag = 0;
+	private int viewFlag = 0;
 	
 	
 	@Override
@@ -55,9 +56,12 @@ public class MainActivity extends Activity {
 		list.setAdapter(adapter);
 		list.setPersistentDrawingCache(ViewGroup.PERSISTENT_NO_CACHE);
 
+		ImageView img_sort = (ImageView) findViewById(R.id.img_sort);
+		final ImageView imgAll = (ImageView) findViewById(R.id.img_all);
+		final ImageView imgFavorite = (ImageView) findViewById(R.id.img_favs);
 		
 		getUserCoordinates();
-		readPratiriaFromFile();
+		readPratiria();
 		sortNearest();
 		
 		
@@ -79,28 +83,103 @@ public class MainActivity extends Activity {
 		});
 		
 		
-		ImageView imgFavorite = (ImageView) findViewById(R.id.img_sort);
-		imgFavorite.setOnClickListener(new View.OnClickListener() {
+		img_sort.setOnClickListener(new View.OnClickListener() {
 		    @Override
 		    public void onClick(View v){
 		    	if ( sortFlag == 0 ){
 		    		((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 		    		sortFlag = 1;
-		    		sortCheapest();
 		    	} else{
 		    		((ImageView) v).setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
 		    		sortFlag = 0;
-		    		sortNearest();
+		    	}
+		    	sortCheapest();
+		    }
+		});
+		
+		
+		imgFavorite.setOnClickListener(new View.OnClickListener() {
+		    @Override
+		    public void onClick(View v){
+		    	if ( viewFlag == 0 ){
+		    		imgAll.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
+			    	((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+			    	viewFlag = 1;
+			    	readFavoritePratiria();
+			    	sortNearest();
 		    	}
 		    }
 		});
+		
+		
+		imgAll.setOnClickListener(new View.OnClickListener() {
+		    @Override
+		    public void onClick(View v){
+		    	if ( viewFlag == 1 ){
+		    		imgFavorite.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
+			    	((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+			    	viewFlag = 0;
+			    	readPratiria();
+			    	sortNearest();
+		    	}
+		    }
+		});
+	}
+	
+	
+	private void readFavoritePratiria(){
+		
+		pratiriaList.clear();
+		BufferedReader reader = null;
+		try {
+		    reader = new BufferedReader(new InputStreamReader(getAssets().open("favorites.txt"), "UTF-8")); 
 
+		    String mLine = reader.readLine();
+		    int k = 0;
+		    while (k < 9){
+		       mLine = reader.readLine(); 
+		       
+		       if ( mLine.indexOf("#") != -1 ){
+		    	   
+			       float minX = 1.0f;
+			       float maxX = 5.0f;
+			       Random rand = new Random();
+			       float finalX = rand.nextFloat() * (maxX - minX) + minX;
+			       
+			       String[] part = mLine.split("#");
+			       String[] ll = part[1].split(",");
+					
+			       double tlat = Double.parseDouble(ll[0]);
+			       double tlon = Double.parseDouble(ll[1]);
+					
+			       float[] results = new float[1];
+			       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
+			       int r = Math.round(results[0]);
+			       
+			       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
+		       }
+		       
+		       k++;
+		    }
+		    
+		    //System.out.println(pratiriaList);
 
+		} catch (IOException e) {
+	
+		} finally { 
+		    if (reader != null) {
+		         try {
+		             reader.close();
+		         } catch (IOException e) {}
+		    }
+		}
+		
 	}
 
 	
-	private void readPratiriaFromFile(){
+	private void readPratiria(){
 		
+		pratiriaList.clear();
 		BufferedReader reader = null;
 		try {
 		    reader = new BufferedReader(new InputStreamReader(getAssets().open("pratiria.txt"), "UTF-8")); 
@@ -152,7 +231,8 @@ public class MainActivity extends Activity {
 			sorted.add(part[1]+"#"+part[0]+"#"+part[2]+"#"+part[3]);
 		}
 		Collections.sort(sorted, new DistanceComparator());
-		finalizeListView();
+		if ( pratiriaList.size() > 20 ) finalizeListView(0);
+		else finalizeListView(1);
 	}
 	
 	
@@ -163,18 +243,23 @@ public class MainActivity extends Activity {
 			sorted.add(part[2]+"#"+part[0]+"#"+part[1]+"#"+part[3]);
 		}
 		Collections.sort(sorted, new PriceComparator());
-		finalizeListView();
+		if ( pratiriaList.size() > 20 ) finalizeListView(0);
+		else finalizeListView(1);
 	}
 	
 	
-	private void finalizeListView(){
+	private void finalizeListView(int mode){
 		
 		address.clear();
 		distance.clear();
 		price.clear();
+		int len = 20;
+		if ( mode == 1 ){ //favorites
+			len = 9;
+		}
 		
 		if ( sortFlag == 0 ){
-			for(int i = 0; i < 20; i++){
+			for(int i = 0; i < len; i++){
 				String[] part = sorted.get(i).split("#");
 				address.add(part[1]);
 				distance.add(part[0]+" μ.");
@@ -184,7 +269,7 @@ public class MainActivity extends Activity {
 			setTitle("LPGStations - Κοντινότερα:");
 			
 		} else{
-			for(int i = 0; i < 20; i++){
+			for(int i = 0; i < len; i++){
 				String[] part = sorted.get(i).split("#");
 				address.add(part[1]);
 				distance.add(part[2]+" μ.");

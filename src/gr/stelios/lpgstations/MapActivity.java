@@ -1,5 +1,7 @@
 package gr.stelios.lpgstations;
 
+import java.util.ArrayList;
+
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -8,7 +10,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
+import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Criteria;
 import android.location.Location;
@@ -19,7 +23,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.Display;
 
 
-public class MapActivity extends FragmentActivity implements LocationListener{
+public class MapActivity extends FragmentActivity implements LocationListener, OnTaskCompleted{
 	
 	private GoogleMap googleMap;
 	
@@ -79,7 +83,22 @@ public class MapActivity extends FragmentActivity implements LocationListener{
 		int width = size.x - 100;
     	CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width, width, 5);
     	googleMap.animateCamera(cu);
+    	
+    	
+    	MapDirections gd = new MapDirections(from, to);
+    	gd.setListener(this);
+    	gd.execute();
 
+	}
+	
+	
+	public void onTaskCompleted(ArrayList<LatLng> directionPoint) {
+		
+		PolylineOptions rectLine = new PolylineOptions().width(3).color(Color.GRAY);
+        for(int i = 0 ; i < directionPoint.size() ; i++){          
+        	rectLine.add(directionPoint.get(i));
+        }
+        googleMap.addPolyline(rectLine);
 	}
 	
 

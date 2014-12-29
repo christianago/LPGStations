@@ -408,7 +408,7 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f02001f;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a001b;
+        public static final int action_settings=0x7f0a001d;
         public static final int book_now=0x7f0a000e;
         public static final int buyButton=0x7f0a000a;
         public static final int buy_now=0x7f0a000f;
@@ -418,10 +418,12 @@ containing a value of this type.
         public static final int holo_dark=0x7f0a0005;
         public static final int holo_light=0x7f0a0006;
         public static final int hybrid=0x7f0a0000;
-        public static final int img_icon=0x7f0a0017;
+        public static final int img_all=0x7f0a0015;
+        public static final int img_favs=0x7f0a0016;
+        public static final int img_icon=0x7f0a0019;
         public static final int img_sort=0x7f0a0014;
-        public static final int listview_pratiria=0x7f0a0015;
-        public static final int map=0x7f0a0016;
+        public static final int listview_pratiria=0x7f0a0017;
+        public static final int map=0x7f0a0018;
         public static final int match_parent=0x7f0a000c;
         public static final int monochrome=0x7f0a0013;
         public static final int none=0x7f0a0001;
@@ -432,9 +434,9 @@ containing a value of this type.
         public static final int selectionDetails=0x7f0a000b;
         public static final int strict_sandbox=0x7f0a0009;
         public static final int terrain=0x7f0a0004;
-        public static final int tv_address=0x7f0a0018;
-        public static final int tv_distance=0x7f0a0019;
-        public static final int tv_price=0x7f0a001a;
+        public static final int tv_address=0x7f0a001a;
+        public static final int tv_distance=0x7f0a001b;
+        public static final int tv_price=0x7f0a001c;
         public static final int wrap_content=0x7f0a000d;
     }
     public static final class integer {

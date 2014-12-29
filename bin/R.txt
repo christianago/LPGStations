@@ -91,7 +91,7 @@ int drawable ic_plusone_tall_off_client 0x7f02001c
 int drawable lpg_icon 0x7f02001d
 int drawable powered_by_google_dark 0x7f02001e
 int drawable powered_by_google_light 0x7f02001f
-int id action_settings 0x7f0a001b
+int id action_settings 0x7f0a001d
 int id book_now 0x7f0a000e
 int id buyButton 0x7f0a000a
 int id buy_now 0x7f0a000f
@@ -101,10 +101,12 @@ int id grayscale 0x7f0a0012
 int id holo_dark 0x7f0a0005
 int id holo_light 0x7f0a0006
 int id hybrid 0x7f0a0000
-int id img_icon 0x7f0a0017
+int id img_all 0x7f0a0015
+int id img_favs 0x7f0a0016
+int id img_icon 0x7f0a0019
 int id img_sort 0x7f0a0014
-int id listview_pratiria 0x7f0a0015
-int id map 0x7f0a0016
+int id listview_pratiria 0x7f0a0017
+int id map 0x7f0a0018
 int id match_parent 0x7f0a000c
 int id monochrome 0x7f0a0013
 int id none 0x7f0a0001
@@ -115,9 +117,9 @@ int id satellite 0x7f0a0003
 int id selectionDetails 0x7f0a000b
 int id strict_sandbox 0x7f0a0009
 int id terrain 0x7f0a0004
-int id tv_address 0x7f0a0018
-int id tv_distance 0x7f0a0019
-int id tv_price 0x7f0a001a
+int id tv_address 0x7f0a001a
+int id tv_distance 0x7f0a001b
+int id tv_price 0x7f0a001c
 int id wrap_content 0x7f0a000d
 int integer google_play_services_version 0x7f070000
 int layout activity_main 0x7f030000
