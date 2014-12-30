@@ -9,7 +9,9 @@ import java.util.Collections;
 import java.util.Random;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.location.Location;
@@ -42,14 +44,23 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
 		
 		if ( !isNetworkConnected() ){
-			//TextView tvMyRegion = (TextView) findViewById(R.id.tvMyRegion);
-			//tvMyRegion.setText("Παρακαλώ τερματίστε την εφαρμογή και ενεργοποιήστε το Internet.");
-			//tvMyRegion.setTextColor(Color.RED);
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	 	    builder.setMessage("Παρακαλώ ενεργοποιήστε το Internet.")
+	 	           .setCancelable(false)
+	 	           .setPositiveButton("ΟΚ", new DialogInterface.OnClickListener(){
+	 	               public void onClick(final DialogInterface dialog, final int id) {
+	 	            	   dialog.cancel();
+	 	               }
+	 	           });
+	 	     
+		 	    final AlertDialog alert = builder.create();
+		 	    alert.show();
 			return;
 		}
+		
+		setContentView(R.layout.activity_main);
 		
 		adapter = new PratiriaAdapter(this, address, price, distance);
 		ListView list = (ListView) findViewById(R.id.listview_pratiria);
