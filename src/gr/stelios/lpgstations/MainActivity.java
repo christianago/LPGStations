@@ -1,5 +1,7 @@
 package gr.stelios.lpgstations;
 
+import gr.stelios.lpgstations.LPGApplication;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,13 +15,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -36,7 +37,6 @@ public class MainActivity extends Activity {
 	private ArrayList<String> distance = new ArrayList<String>(); 
 	private ArrayList<String> sorted = new ArrayList<String>(); 
 	private PratiriaAdapter adapter;
-	private double dlat, dlon;
 	private int sortFlag = 0;
 	private int viewFlag = 0;
 	
@@ -60,6 +60,14 @@ public class MainActivity extends Activity {
 			return;
 		}
 		
+		try {
+			((LPGApplication) getApplication()).initialize();
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		setContentView(R.layout.activity_main);
 		
 		adapter = new PratiriaAdapter(this, address, price, distance);
@@ -71,7 +79,6 @@ public class MainActivity extends Activity {
 		final ImageView imgAll = (ImageView) findViewById(R.id.img_all);
 		final ImageView imgFavorite = (ImageView) findViewById(R.id.img_favs);
 		
-		getUserCoordinates();
 		readPratiria();
 		sortNearest();
 		
@@ -82,8 +89,6 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View arg1, int position, long id) {
 				
 				Intent intent = new Intent(MainActivity.this, MapActivity.class);
-				intent.putExtra("mylat", dlat);
-				intent.putExtra("mylon", dlon);
 				intent.putExtra("list", sorted.get(position));
 		
 				//System.out.println("LIST CLICK "+sorted.get(position));
@@ -145,32 +150,43 @@ public class MainActivity extends Activity {
 		try {
 		    reader = new BufferedReader(new InputStreamReader(getAssets().open("favorites.txt"), "UTF-8")); 
 
-		    String mLine = reader.readLine();
-		    int k = 0;
-		    while (k < 9){
-		       mLine = reader.readLine(); 
-		       
-		       if ( mLine.indexOf("#") != -1 ){
-		    	   
-			       float minX = 1.0f;
-			       float maxX = 5.0f;
-			       Random rand = new Random();
-			       float finalX = rand.nextFloat() * (maxX - minX) + minX;
+		    SharedPreferences prefs = getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
+			String slat = prefs.getString("user_lat", null); 
+			String slon = prefs.getString("user_lon", null); 
+			
+			System.out.println(slat + "---" + slon);
+			
+		    double dlat = Double.parseDouble(slat);
+		    double dlon = Double.parseDouble(slon);
+		    
+		    if ( slat != null && slon != null ){	
+			    String mLine = reader.readLine();
+			    int k = 0;
+			    while (k < 9){
+			       mLine = reader.readLine(); 
 			       
-			       String[] part = mLine.split("#");
-			       String[] ll = part[1].split(",");
-					
-			       double tlat = Double.parseDouble(ll[0]);
-			       double tlon = Double.parseDouble(ll[1]);
-					
-			       float[] results = new float[1];
-			       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
-			       int r = Math.round(results[0]);
+			       if ( mLine.indexOf("#") != -1 ){
+			    	   
+				       float minX = 1.0f;
+				       float maxX = 5.0f;
+				       Random rand = new Random();
+				       float finalX = rand.nextFloat() * (maxX - minX) + minX;
+				       
+				       String[] part = mLine.split("#");
+				       String[] ll = part[1].split(",");
+						
+				       double tlat = Double.parseDouble(ll[0]);
+				       double tlon = Double.parseDouble(ll[1]);
+						
+				       float[] results = new float[1];
+				       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
+				       int r = Math.round(results[0]);
+				       
+				       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
+			       }
 			       
-			       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
-		       }
-		       
-		       k++;
+			       k++;
+			    }
 		    }
 		    
 		    //System.out.println(pratiriaList);
@@ -194,33 +210,44 @@ public class MainActivity extends Activity {
 		BufferedReader reader = null;
 		try {
 		    reader = new BufferedReader(new InputStreamReader(getAssets().open("pratiria.txt"), "UTF-8")); 
+		    SharedPreferences prefs = getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
+			String slat = prefs.getString("user_lat", null); 
+			String slon = prefs.getString("user_lon", null); 
+			System.out.println(slat + "---" + slon);
+			
 
-		    String mLine = reader.readLine();
-		    int k = 0;
-		    while (k < 674){
-		       mLine = reader.readLine(); 
-		       
-		       if ( mLine.indexOf("#") != -1 ){
-		    	   
-			       float minX = 1.0f;
-			       float maxX = 5.0f;
-			       Random rand = new Random();
-			       float finalX = rand.nextFloat() * (maxX - minX) + minX;
+			if ( slat != null && slon != null ){	
+				
+			    double dlat = Double.parseDouble(slat);
+			    double dlon = Double.parseDouble(slon);
+	
+			    String mLine = reader.readLine();
+			    int k = 0;
+			    while (k < 674){
+			       mLine = reader.readLine(); 
 			       
-			       String[] part = mLine.split("#");
-			       String[] ll = part[1].split(",");
-					
-			       double tlat = Double.parseDouble(ll[0]);
-			       double tlon = Double.parseDouble(ll[1]);
-					
-			       float[] results = new float[1];
-			       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
-			       int r = Math.round(results[0]);
+			       if ( mLine.indexOf("#") != -1 ){
+			    	   
+				       float minX = 1.0f;
+				       float maxX = 5.0f;
+				       Random rand = new Random();
+				       float finalX = rand.nextFloat() * (maxX - minX) + minX;
+				       
+				       String[] part = mLine.split("#");
+				       String[] ll = part[1].split(",");
+						
+				       double tlat = Double.parseDouble(ll[0]);
+				       double tlon = Double.parseDouble(ll[1]);
+						
+				       float[] results = new float[1];
+				       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
+				       int r = Math.round(results[0]);
+				       
+				       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
+			       }
 			       
-			       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
-		       }
-		       
-		       k++;
+			       k++;
+			    }
 		    }
 
 		} catch (IOException e) {
@@ -293,22 +320,6 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	private void getUserCoordinates(){
-		 MyLocation gpsTracker = new MyLocation(this);
-		 if ( gpsTracker.canGetLocation() ){
-			String stringLatitude = String.valueOf(gpsTracker.latitude);
-	        String stringLongitude = String.valueOf(gpsTracker.longitude);
-	        
-	        dlat = Double.parseDouble(stringLatitude);
-	        dlon = Double.parseDouble(stringLongitude);
-	        
-	        //dlat = 40.5169088;
-	        //dlon = 21.2631571;
-	        //System.out.println(stringLatitude+" - "+stringLongitude);
-	     }
-	 }
-	
-	
 	private boolean isNetworkConnected() {
 		  ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		  NetworkInfo ni = cm.getActiveNetworkInfo();
@@ -320,18 +331,14 @@ public class MainActivity extends Activity {
 	
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+	protected void onResume() {
+		super.onResume();
+		try {
+			((LPGApplication) getApplication()).initialize();
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return super.onOptionsItemSelected(item);
 	}
 }

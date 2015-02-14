@@ -9,6 +9,6 @@ package gr.stelios.lpgstations;
 
 public final class Manifest {
     public static final class permission {
-        public static final String MAPS_RECEIVE="com.christos.findit.permission.MAPS_RECEIVE";
+        public static final String MAPS_RECEIVE="gr.stelios.lpgstations.permission.MAPS_RECEIVE";
     }
 }

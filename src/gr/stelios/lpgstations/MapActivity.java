@@ -12,6 +12,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Criteria;
@@ -51,20 +53,20 @@ public class MapActivity extends FragmentActivity implements LocationListener, O
 	
 	@Override
 	public void onLocationChanged(Location location) {
-
-		double myLat;
-    	double myLong;
-    	
-    	myLat = getIntent().getDoubleExtra("mylat", 0.0);
-    	myLong = getIntent().getDoubleExtra("mylon", 0.0);
-    	
-    	String extra = getIntent().getStringExtra("list");
+		
+    	SharedPreferences prefs = this.getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
+		String slat = prefs.getString("user_lat", null); 
+		String slon = prefs.getString("user_lon", null); 
+		double dlat = Double.parseDouble(slat);
+	    double dlon = Double.parseDouble(slon);
+		
+		String extra = getIntent().getStringExtra("list");
     	String[] part = extra.split("#");
     	
-    	double tlat = Double.parseDouble(part[3].split(",")[0]);
+	    double tlat = Double.parseDouble(part[3].split(",")[0]);
 	    double tlon = Double.parseDouble(part[3].split(",")[1]);
 
-    	LatLng from = new LatLng(myLat, myLong);
+    	LatLng from = new LatLng(dlat, dlon);
         LatLng to = new LatLng(tlat, tlon);
         
         //System.out.println(tlat+","+tlon);
