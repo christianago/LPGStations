@@ -300,7 +300,11 @@ public class MainActivity extends Activity {
 			for(int i = 0; i < len; i++){
 				String[] part = sorted.get(i).split("#");
 				address.add(part[1]);
-				distance.add(part[0]+" ì.");
+				
+				int dis = Integer.parseInt(part[0]) / 1000;
+				String d = dis + "";
+				distance.add(d+" ÷ëì.");
+				
 				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[2]));
 			    price.add(pr+" €");
 			}
@@ -310,7 +314,7 @@ public class MainActivity extends Activity {
 			for(int i = 0; i < len; i++){
 				String[] part = sorted.get(i).split("#");
 				address.add(part[1]);
-				distance.add(part[2]+" ì.");
+				distance.add(part[2]+" ÷ëì.");
 				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[0]));
 			    price.add(pr+" €");
 			}

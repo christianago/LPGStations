@@ -14,10 +14,14 @@
     
     <TextView
        android:id="@+id/tv_address"
+       android:ellipsize="none"
+	   android:maxLines="80"
+	   android:scrollHorizontally="false"
        android:layout_width="190dp"
        android:layout_height="wrap_content"
        android:layout_alignLeft="@+id/img_icon"
        android:layout_marginLeft="50dp"
+       android:paddingRight="5dp"
        android:text="address"
        android:textColor="#00008B"
        android:textSize="16sp" />

@@ -61,6 +61,10 @@ public class LPGApplication extends Application implements LocationListener{
 	 	    lon = String.valueOf(location.getLongitude());
     	}
     	
+    	//lat = "40.5169088";
+    	//lon = "21.2631571";
+    	
+    	
     	SharedPreferences prefs = this.getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
 		prefs.edit().putString("user_lat", lat).apply();
 		prefs.edit().putString("user_lon", lon).apply();
