@@ -19,6 +19,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 
+/*OPEN-SOURCE бибкиохгйг-йкасг поу сведиафеи лиа цяаллг сто ваятг поу емымеи одийа та 2 сглеиа (MARKERS)*/
+
 public class MapDirections extends AsyncTask<LatLng,LatLng,Document>{
     
     private OnTaskCompleted listener;

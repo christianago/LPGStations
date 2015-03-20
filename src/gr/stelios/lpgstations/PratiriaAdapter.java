@@ -4,36 +4,50 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 
 public class PratiriaAdapter extends BaseAdapter{ 
 	
+	//ορισμος αντικειμενων TextView
 	static class ViewHolder{
         TextView tv_address;
         TextView tv_price;
         TextView tv_distance;
     }
 	
+	//το πλαισιο εργασιας του app
 	private Context ctx;
+	
+	//το μηκος του της οθονης του κινητου
+	private int width = 200;
     
 
+	//self-explained arraylists
 	private ArrayList<String> address = new ArrayList<String>();
 	private ArrayList<String> price = new ArrayList<String>();
 	private ArrayList<String> distance = new ArrayList<String>();
 
     
+	//Κληση του ανταπτορα με απεριοριστο αριθμο ορισματων, εδω ειναι 4
     public PratiriaAdapter(Context ctx, ArrayList<String>... arg) {
     	this.ctx = ctx;
     	this.address = arg[0];
     	this.price = arg[1];
     	this.distance = arg[2];
+    	
+    	WindowManager wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+    	Display display = wm.getDefaultDisplay();
+    	width = display.getWidth();
     }
     
+    //καταμετρηση των στοιχειων της λιστας
     @Override
     public int getCount() {
         return address.size();
@@ -54,23 +68,35 @@ public class PratiriaAdapter extends BaseAdapter{
     	return true;
     }
 
+    //η μεθοδος που θα κανει render τη λιστα με τα πρατηρια στο κινητο
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
     	ViewHolder holder = null;
     	
+    	//εαν δεν εχει αρχικοποιηθει ακομα η λιστα
     	if ( convertView == null ) {
+    		
+    		//εισαγωγη του layout της λιστα;ς
     		LayoutInflater mInflater = (LayoutInflater) ctx.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+    		
+    		//ορισμος του πατερα της λιστας
     		convertView = mInflater.inflate(R.layout.pratiria, parent, false);
 	        holder = new ViewHolder();
+	        
+	        //αναθεση των Textview στη λιστα
 	        holder.tv_address = (TextView) convertView.findViewById(R.id.tv_address);
 	        holder.tv_price = (TextView) convertView.findViewById(R.id.tv_price);
 	        holder.tv_distance = (TextView) convertView.findViewById(R.id.tv_distance);
+	        
+	    	holder.tv_address.setWidth((int) (width / 1.5));
+			
 	        convertView.setTag(holder);
     	} else{
     		 holder = (ViewHolder) convertView.getTag();
     	}
     	
+    	//εγγραφη των τιμων σε καθε αντιστοιχιζομενο στοιχειο της λιστας
     	holder.tv_address.setText(address.get(position));
     	holder.tv_price.setText(price.get(position));
     	holder.tv_distance.setText(distance.get(position));

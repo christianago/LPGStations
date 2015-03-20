@@ -2,6 +2,7 @@ package gr.stelios.lpgstations;
 
 import java.util.Comparator;
 
+/*Custom class για να συγκρινει τις τιμες που δινονται συμφωνα με τα ορισματα και να επιστρεψει τη μεγαλυτερη μεταξυ των 2*/
 public class PriceComparator implements Comparator<String> {
 
     @Override

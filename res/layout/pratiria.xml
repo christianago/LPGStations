@@ -1,49 +1,80 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:background="#F0F8FF"
     android:orientation="horizontal" >
      
+     <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".2">
+        
+	   <ImageView
+	        android:id="@+id/img_icon"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:src="@drawable/lpg_icon" />
+        
+	</LinearLayout>
+	
+     
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".4">
     
-    <ImageView
-        android:id="@+id/img_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/lpg_icon" />
+	    <TextView
+	        android:id="@+id/tv_address"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:ellipsize="none"
+	        android:maxLines="80"
+	        android:paddingLeft="5dp"
+	        android:paddingRight="5dp"
+	        android:text="address"
+	        android:textColor="#00008B"
+	        android:textSize="16sp" />
+        
+	</LinearLayout>
+	
     
-    <TextView
-       android:id="@+id/tv_address"
-       android:ellipsize="none"
-	   android:maxLines="80"
-	   android:scrollHorizontally="false"
-       android:layout_width="190dp"
-       android:layout_height="wrap_content"
-       android:layout_alignLeft="@+id/img_icon"
-       android:layout_marginLeft="50dp"
-       android:paddingRight="5dp"
-       android:text="address"
-       android:textColor="#00008B"
-       android:textSize="16sp" />
+      <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight=".2">
     
-    <TextView
-       android:id="@+id/tv_distance"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_alignParentRight="true"
-       android:layout_marginRight="60dp"
-       android:text="distance"
-       android:textColor="#FF8C00"
-       android:textSize="15sp" />
+	  <TextView
+	       android:id="@+id/tv_distance"
+	       android:layout_width="fill_parent"
+	       android:layout_height="wrap_content"
+	       android:paddingRight="3dp"
+	       android:text="distance"
+	       android:textColor="#FF8C00"
+	       android:textSize="13sp" />
+        
+	</LinearLayout>
+  
+      
+  <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:gravity="right"
+        android:layout_weight=".2">
     
-    <TextView
+	<TextView
        android:id="@+id/tv_price"
-       android:layout_width="wrap_content"
+       android:layout_width="fill_parent"
        android:layout_height="wrap_content"
-       android:layout_alignParentRight="true"
-       android:layout_marginRight="10dp"
        android:text="price"
+       android:paddingRight="2dp"
        android:textColor="#A52A2A"
-       android:textSize="15sp" />
+       android:textSize="13sp" />
 
-</RelativeLayout>
+	</LinearLayout>
+
+</LinearLayout>
