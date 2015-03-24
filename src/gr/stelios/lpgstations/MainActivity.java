@@ -87,11 +87,14 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 		
+		
 		//Εμφανιση του αντιστοιχου layout (res/layout/*.xml)
 		setContentView(R.layout.activity_main);
 		
 		adapter = new PratiriaAdapter(this, address, price, distance);
 		
+		readPratiria(0);
+		sortNearest();
 		
 		//Το ListView θα εμφανιζει τη λιστα με τα πρατηρια
 		ListView list = (ListView) findViewById(R.id.listview_pratiria);
@@ -108,9 +111,6 @@ public class MainActivity extends Activity {
 		
 		//Κουμπι-εικονα για εμφανιση αγαπημενων πρατηριων 
 		final ImageView imgFavorite = (ImageView) findViewById(R.id.img_favs);
-		
-		readPratiria();
-		sortNearest();
 		
 		
 		//Ακροατης για το πατημα των πρατηριων που υπαρχουν στη λιστα που εμφανιζεται στο χρηστη
@@ -138,10 +138,12 @@ public class MainActivity extends Activity {
 		    	if ( sortFlag == 0 ){
 		    		((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 		    		sortFlag = 1;
+		    		readPratiria(1);
 		    		sortCheapest();
 		    	} else{
 		    		((ImageView) v).setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
 		    		sortFlag = 0;
+		    		readPratiria(0);
 		    		sortNearest();
 		    	}
 		    	
@@ -158,7 +160,8 @@ public class MainActivity extends Activity {
 		    		imgAll.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
 			    	((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 			    	viewFlag = 1;
-			    	readFavoritePratiria();
+			    	sortFlag = 0;
+			    	readPratiria(1);
 			    	sortNearest();
 		    	}
 		    }
@@ -174,7 +177,8 @@ public class MainActivity extends Activity {
 		    		imgFavorite.setColorFilter(0xFFFFFFFF, PorterDuff.Mode.MULTIPLY);
 			    	((ImageView) v).setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 			    	viewFlag = 0;
-			    	readPratiria();
+			    	sortFlag = 0;
+			    	readPratiria(0);
 			    	sortNearest();
 		    	}
 		    }
@@ -183,7 +187,15 @@ public class MainActivity extends Activity {
 	
 	
 	//Αναγνωση απο ASCII αρχειο τη λιστα με τα πρατηρια
-	private void readFavoritePratiria(){
+	private void readPratiria(int mode){
+		
+		int pratiriaLen = 9;
+		String file = "favorites";
+		
+		if ( mode == 0 ){ //ολα τα πρατηρια
+			pratiriaLen = 674;
+			file = "pratiria";
+		}
 		
 		//εκκαθαριση της arraylist πρατηριων
 		pratiriaList.clear();
@@ -191,13 +203,14 @@ public class MainActivity extends Activity {
 		try {
 			
 			//ανοιγμα του αρχειου
-		    reader = new BufferedReader(new InputStreamReader(getAssets().open("favorites.txt"), "UTF-8")); 
+		    reader = new BufferedReader(new InputStreamReader(getAssets().open(file+".txt"), "UTF-8")); 
 
 		    //αναγνωση των ηδη αποθηκευμενων τρεχοντων συντεταγμενων
 		    SharedPreferences prefs = getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
 			String slat = prefs.getString("user_lat", null); 
 			String slon = prefs.getString("user_lon", null); 
 			
+			//fallback ενα το κινητο δεν εχει τοποθετημένη SIM, ή οποιαδήποτε δυνατότητα για λήψης τοποθεσιας του χρήστη
 			if ( slat == null ){
 				slat = "40.4875602";
 				slon = "21.212499";
@@ -207,51 +220,48 @@ public class MainActivity extends Activity {
 			//εμφανιση στην κονσολα
 			System.out.println(slat + "---" + slon);
 			
-			//μετατροπη των παραπανω σε double
+			//μετατροπη των παραπανω coordinates σε double
 		    double dlat = Double.parseDouble(slat);
 		    double dlon = Double.parseDouble(slon);
 		    
-		    //ελεγχος για null τιμες
-		    if ( slat != null && slon != null ){
-		    	
-		    	//αναγνωση του αρχειου ανα 1 γραμμη
-			    String mLine = reader.readLine();
-			    int k = 0;
-			    while (k < 9){ //αναγνωση μεχρι 10 γραμμες
-			       mLine = reader.readLine(); 
+	    	//αναγνωση του αρχειου ανα 1 γραμμη
+		    String mLine = reader.readLine();
+		    int k = 0;
+		    while (k < pratiriaLen){ //αναγνωση μεχρι pratiriaLen γραμμες
+		       mLine = reader.readLine(); 
+		       
+		       //συνεχισε αν βρεις το παρακατω συμβολο σε καθε αναγνωση
+		       if ( mLine.indexOf("#") != -1 ){
+		    	   
+			       float minX = 1.0f;
+			       float maxX = 5.0f;
+			       Random rand = new Random();
 			       
-			       //συνεχισε αν βρεις το παρακατω συμβολο σε καθε αναγνωση
-			       if ( mLine.indexOf("#") != -1 ){
-			    	   
-				       float minX = 1.0f;
-				       float maxX = 5.0f;
-				       Random rand = new Random();
-				       
-				       //τυχαιος δεκαδικος αριθμος (η τιμη του πρατηριου) απο 1 μεχρι 5
-				       float finalX = rand.nextFloat() * (maxX - minX) + minX;
-				       
-				       //σπασιμο της γραμμης σε 2 κομματα - array με 2 values με βαση το παρακατω διαχωριστικο
-				       String[] part = mLine.split("#");
-				       String[] ll = part[1].split(",");
-						
-				       //μετατροπη σε double
-				       double tlat = Double.parseDouble(ll[0]);
-				       double tlon = Double.parseDouble(ll[1]);
-						
-				       //υπολογισμος της αποστασης του πρατηριου σε σχεση με το χρηστη
-				       float[] results = new float[1];
-				       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
-				       
-				       //στρογγυλοποιηση
-				       int r = Math.round(results[0]);
-				       
-				       //εισαγωγη των στοιχειων καθε γραμμης στην παρακατω arraylist
-				       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
-			       }
+			       //τυχαιος δεκαδικος αριθμος (η τιμη του πρατηριου) απο 1 μεχρι 5
+			       float finalX = rand.nextFloat() * (maxX - minX) + minX;
 			       
-			       k++;
-			    }
+			       //σπασιμο της γραμμης σε 2 κομματα - array με 2 values με βαση το παρακατω διαχωριστικο
+			       String[] part = mLine.split("#");
+			       String[] ll = part[1].split(",");
+					
+			       //μετατροπη σε double
+			       double tlat = Double.parseDouble(ll[0]);
+			       double tlon = Double.parseDouble(ll[1]);
+					
+			       //υπολογισμος της αποστασης του πρατηριου σε σχεση με το χρηστη
+			       float[] results = new float[1];
+			       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
+			       
+			       //στρογγυλοποιηση
+			       int r = Math.round(results[0]);
+			       
+			       //εισαγωγη των στοιχειων καθε γραμμης στην παρακατω arraylist
+			       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
+		       }
+		       
+		       k++;
 		    }
+		    
 		    
 		    //System.out.println(pratiriaList);
 
@@ -270,73 +280,6 @@ public class MainActivity extends Activity {
 	}
 
 	
-	//Εχει αναλυθει παραπανω
-	private void readPratiria(){
-		
-		pratiriaList.clear();
-		BufferedReader reader = null;
-		try {
-		    reader = new BufferedReader(new InputStreamReader(getAssets().open("pratiria.txt"), "UTF-8")); 
-		    SharedPreferences prefs = getSharedPreferences("gr.stelios.lpgstations", Context.MODE_PRIVATE);
-			String slat = prefs.getString("user_lat", null); 
-			String slon = prefs.getString("user_lon", null); 
-			
-			if ( slat == null ){
-				slat = "40.4875602";
-				slon = "21.212499";
-	    	}
-			
-			System.out.println(slat + "---" + slon);
-			
-			if ( slat != null && slon != null ){	
-				
-			    double dlat = Double.parseDouble(slat);
-			    double dlon = Double.parseDouble(slon);
-	
-			    String mLine = reader.readLine();
-			    int k = 0;
-			    while (k < 674){
-			       mLine = reader.readLine(); 
-			       
-			       if ( mLine.indexOf("#") != -1 ){
-			    	   
-				       float minX = 1.0f;
-				       float maxX = 5.0f;
-				       Random rand = new Random();
-				       float finalX = rand.nextFloat() * (maxX - minX) + minX;
-				       
-				       String[] part = mLine.split("#");
-				       String[] ll = part[1].split(",");
-						
-				       double tlat = Double.parseDouble(ll[0]);
-				       double tlon = Double.parseDouble(ll[1]);
-						
-				       float[] results = new float[1];
-				       Location.distanceBetween(dlat, dlon, tlat, tlon, results);
-				       int r = Math.round(results[0]);
-				       
-				       pratiriaList.add(part[0]+"#"+r+"#"+finalX+"#"+part[1]);
-			       }
-			       
-			       k++;
-			    }
-		    }
-
-		} catch (IOException e) {
-	
-		} finally { 
-		    if (reader != null) {
-		         try {
-		             reader.close();
-		             
-		             System.out.println(pratiriaList);
-		             
-		         } catch (IOException e) {}
-		    }
-		}
-	}
-	
-	
 	//Ταξινομηση με τα κοντινοτερα πρατηρια
 	private void sortNearest(){
 		
@@ -353,7 +296,7 @@ public class MainActivity extends Activity {
 		
 		//κληση της κλαση DistanceComparator για συγκριση των τιμων στο arraylist
 		Collections.sort(sorted, new DistanceComparator());
-		if ( pratiriaList.size() > 20 ) finalizeListView(0);
+		if ( pratiriaList.size() > 10 ) finalizeListView(0);
 		else finalizeListView(1);
 	}
 	
@@ -366,7 +309,7 @@ public class MainActivity extends Activity {
 			sorted.add(part[2]+"#"+part[0]+"#"+part[1]+"#"+part[3]);
 		}
 		Collections.sort(sorted, new PriceComparator());
-		if ( pratiriaList.size() > 20 ) finalizeListView(0);
+		if ( pratiriaList.size() > 10 ) finalizeListView(0);
 		else finalizeListView(1);
 	}
 	
@@ -377,49 +320,41 @@ public class MainActivity extends Activity {
 		address.clear();
 		distance.clear();
 		price.clear();
-		int len = 20;
-		if ( mode == 1 ){ //favorites
-			len = 9;
-		}
 		
-		//Log.d("LPGSTATIONS", sortFlag+"");
-		
-		
+		//τιτλος της εφαρμογης
 		if ( sortFlag == 0 ){
-			for(int i = 0; i < len; i++){
-				String[] part = sorted.get(i).split("#");
-				address.add(part[1]);
-				
-				double temp = Double.parseDouble(part[0]);
-				
-				//εμφανιση χιλιομετρα αντι για μετρα
-				int dis = (int) (temp / 1000);
-				String d = dis + "";
-				distance.add(d+" χλμ.");
-				
-				//μορφοποιηση της τιμης οπως θα εμφανιζεται
-				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[2]));
-			    price.add(pr+" ");
-			}
-			
-			//τιτλος της εφαρμογης
 			setTitle("LPGStations - Κοντινότερα:");
-			
 		} else{
-			for(int i = 0; i < len; i++){
-				String[] part = sorted.get(i).split("#");
-				address.add(part[1]);
-				
-				double temp = Double.parseDouble(part[2]);
-				int dis = (int) (temp / 1000);
-				String d = dis + "";
-				distance.add(d+" χλμ.");
-				
-				String pr = new DecimalFormat("#.##").format(Float.parseFloat(part[0]));
-				price.add(pr+" ");
-			}
 			setTitle("LPGStations - Φθηνότερα:");
 		}
+			
+		for(int i = 0; i < sorted.size(); i++){
+			String[] part = sorted.get(i).split("#");
+			address.add(part[1]);
+			
+			double temp;
+			String pr = "";
+			if ( sortFlag == 0 ){
+				temp = Double.parseDouble(part[0]);
+			} else{
+				temp = Double.parseDouble(part[2]);
+			}
+			
+			//εμφανιση χιλιομετρα αντι για μετρα
+			int dis = (int) (temp / 1000);
+			String d = dis + "";
+			distance.add(d+" χλμ.");
+
+			//μορφοποιηση της τιμης οπως θα εμφανιζεται
+			if ( sortFlag == 0 ){
+				pr = new DecimalFormat("#.##").format(Float.parseFloat(part[2]));
+			} else{
+				pr = new DecimalFormat("#.##").format(Float.parseFloat(part[0]));
+			}
+		    price.add(pr+" ");
+		}
+				
+
 		adapter.notifyDataSetChanged(); 
 	}
 	
